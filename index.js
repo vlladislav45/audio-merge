@@ -2,95 +2,9 @@ const ffmpeg = require('./ffmpeg');
 const exec = require('child_process').exec;
 const path = require("path");
 
-// const input1 = [
-//     {
-//         "id": "4wfHRus09FTNf0ZchquMC",
-//         "projectFileId": 3,
-//         "src": "./sample-6s.mp3",
-//         "group": 1,
-//         "content": {},
-//         "_type": "audio",
-//         "duration": 6000,
-//         "originalFileDuration": 6000,
-//         "start": 0,
-//         "end": 6000,
-//         "playFrom": 0,
-//         "volume": 100,
-//         "className": "cardInfo.audioInfo.type",
-//         "denyMoving": false
-//     },
-//     {
-//         "id": "kQpxwMsCRTsUB85U_8zKt",
-//         "projectFileId": 4,
-//         "src": "./short.mp3",
-//         "group": 2,
-//         "content": {},
-//         "_type": "audio",
-//         "duration": 2540,
-//         "originalFileDuration": 2540,
-//         "start": 1833,
-//         "end": 4373,
-//         "playFrom": 0,
-//         "volume": 100,
-//         "className": "cardInfo.audioInfo.type",
-//         "denyMoving": false
-//     }
-// ];
-
-const input1 = [
-    {
-        "id": "9eD4YaVbAbgg-MhpOkvwr",
-        "projectFileId": 1,
-        "src": "./short.mp3",
-        "group": 2,
-        "content": {},
-        "_type": "audio",
-        "duration": 2540,
-        "originalFileDuration": 2540,
-        "start": 8531,
-        "end": 11071,
-        "playFrom": 0,
-        "volume": 100,
-        "className": "cardInfo.audioInfo.type",
-        "denyMoving": false
-    },
-    {
-        "id": "5CdsH9s5UqNR6XQfEJiR2",
-        "projectFileId": 2,
-        "src": "./dark-engine.mp3",
-        "group": 1,
-        "content": {},
-        "_type": "audio",
-        "duration": 3588,
-        "originalFileDuration": 12000,
-        "start": 381,
-        "end": 3969,
-        "playFrom": 0,
-        "volume": 100,
-        "className": "cardInfo.audioInfo.type",
-        "denyMoving": false
-    },
-    {
-        "id": "Oq3pmuGbamGMtbMMiDe4y",
-        "projectFileId": 2,
-        "src": "./dark-engine.mp3",
-        "group": 1,
-        "content": {},
-        "_type": "audio",
-        "duration": 8412,
-        "originalFileDuration": 12000,
-        "start": 6129,
-        "end": 14541,
-        "playFrom": 3588,
-        "volume": 100,
-        "className": "cardInfo.audioInfo.type",
-        "denyMoving": false
-    }
-]
-
 const input = [
     {
-        "id": "tOVI6W9uQBEolJKIidiQX",
+        "id": "n3fXeI818rrrwY8k2C053",
         "projectFileId": 1,
         "src": "./short.mp3",
         "group": 1,
@@ -104,40 +18,31 @@ const input = [
         "volume": 100,
         "className": "cardInfo.audioInfo.type",
         "denyMoving": false
+    },
+    {
+        "id": "UIx5Yn9lRD1KTHfaSzhmD",
+        "projectFileId": 2,
+        "src": "./dark-engine.mp3",
+        "group": 1,
+        "content": {},
+        "_type": "audio",
+        "duration": 12000,
+        "originalFileDuration": 12000,
+        "start": 3113,
+        "end": 15113,
+        "playFrom": 0,
+        "volume": 100,
+        "className": "cardInfo.audioInfo.type",
+        "denyMoving": false
     }
 ]
-
-// ffmpeg()
-//     .input('sample-3s.mp3')
-//     .save('voice-message.wav');
-
-console.log('Starting converting...');
-
-// INPUT 1
-
-// const src = input1.map((i) => i.src).join(' -i ').trim().toString();
-//
-// exec(`ffmpeg -i ${src} \
-//       -filter_complex \
-//       "\
-//       [0]adelay=0|0[output-s3];\
-//       [1]adelay=${input1[1].start}|${input1[1].start}[output-6s];\
-//       [output-s3][output-6s]amix=2" \
-//       merged.mp3
-//    `, (err, stdout, stderr) => {
-//     if (err) {
-//         console.error(err);
-//         return;
-//     }
-//     console.log(stdout);
-// });
-
-console.log('End processing!')
 
 console.log('Starting converting...');
 
 // INPUT 2
 const groups = new Map();
+
+console.log('input', input)
 
 // Predefine all groups
 input.forEach((i, index) => {
@@ -149,33 +54,9 @@ input.forEach((i, index) => {
     } else groups.set(group, [element]);
 });
 
+console.log('groups', groups);
+
 const src = input.map((i) => i.src).join(' -i ').trim().toString();
-
-const delays2 = () => {
-    groups.forEach((val, key) => {
-        // Sort elements by start time
-       const sorted = Array.from(val).sort((a, b) => {
-           if(a.start < b.start) return -1;
-           if(a.start > b.start) return 1;
-           return 0;
-       });
-
-       // Maybe compare left with right
-       sorted.forEach((s, index) => {
-           if(index === 0) {
-               groups.get(s.group)[index].delay = `adelay=${s.start}|${s.start}`
-           } else {
-               const delay = s.start - sorted[index - 1].end;
-               console.log('start', s.start);
-               console.log(' sorted[index - 1].end',  sorted[index - 1].end);
-               console.log('delay', delay)
-               groups.get(s.group)[index].delay = `adelay=${delay}|${delay}`
-           }
-       })
-    });
-}
-
-delays2();
 
 const outputName = (index, name) => `output--${index}-${path.basename(name)}`;
 
@@ -188,14 +69,14 @@ const trims = () => {
 
             return {
                 ...i,
-                trim: `atrim=start='${i.playFrom / 1000}':end='${i.end / 1000}'`,
+                trim: `atrim=start='${i.playFrom / 1000}':end='${(i.playFrom + i.duration) / 1000}'`,
             }
         }).filter((el) => el !== undefined);
 
-        // If there are needs for trim add to the last element mapped values
-        if(needsTrimArr.length) {
+        // Description: If there are needs more than 1 item to trim an audio
+        // Do not need to go through this functionality if items are less or equals to 1
+        if(needsTrimArr.length > 1) {
             let concatAudio = '';
-
 
             needsTrimArr.forEach((el) => {
                 concatAudio += '[' + outputName(el.index, el.src) + ']';
@@ -205,18 +86,76 @@ const trims = () => {
             const mergedTrack = 'merged-audio-track' + outputName(needsTrimArr[needsTrimArr.length - 1].index, needsTrimArr[needsTrimArr.length - 1].src);
             concatAudio += 'concat=n=' + needsTrimArr.length + ':v=0:a=1' + ' [' + mergedTrack + ']';
 
+            // add to the last element mapped values
             needsTrimArr[needsTrimArr.length - 1].mergedAudio = concatAudio;
             needsTrimArr[needsTrimArr.length - 1].mergedAudioTrackName = mergedTrack;
         }
 
         // Re-assign the new value with the old one
-        groups.set(groupId, needsTrimArr.length ? needsTrimArr : val);
+        if(!needsTrimArr.length)  groups.set(groupId,val);
+        else {
+            needsTrimArr.forEach((n) => {
+                const ref = groups.get(n.group);
+                const seekedIndex = ref.findIndex((e) => e.id === n.id);
+                ref[seekedIndex] = n;
+            })
+        }
     })
 
     return groups
 };
 
 console.log('TRIMS', trims());
+
+/**
+ * If the group audio files ain't merged the delay should be from the starting point NOT from the previous stop
+ * So careful with that and know that
+ */
+const delays = () => {
+    groups.forEach((val, key) => {
+        // Sort elements by start time
+        const sorted = Array.from(val).sort((a, b) => {
+            if(a.start < b.start) return -1;
+            if(a.start > b.start) return 1;
+            return 0;
+        });
+
+        sorted.forEach((s, index) => {
+            let previousEl = sorted[index - 1];
+            if(index === 0 || !previousEl?.merged) {
+                groups.get(s.group)[index].delay = `adelay=${s.start}|${s.start}`
+            } else {
+                const delay = s.start - sorted[index - 1].end;
+                groups.get(s.group)[index].delay = `adelay=${delay}|${delay}`
+            }
+        })
+    });
+}
+
+delays();
+
+const mergedLengthFilesByGroup = (group, src) => {
+    let counter = 0;
+    groups.get(group).filter((g) => {
+        if(g.src === src && g.merged) counter++;
+    })
+    return counter;
+}
+
+const extractOutput = (inp) => {
+    let output = '';
+    if(!inp.mergedAudioTrackName && (!inp.merged || mergedLengthFilesByGroup(inp.group, inp.src) <= 1)) {
+        output = `[${outputName(inp.index, inp.src)}]`;
+        return output;
+    }
+
+    if(inp.mergedAudioTrackName && mergedLengthFilesByGroup(inp.group, inp.src) > 1) {
+        output = `[${inp.mergedAudioTrackName}]`;
+        return output
+    }
+
+    return output;
+}
 
 console.log('Extract file name: ', path.basename(input[0].src))
 const outputs = []
@@ -225,16 +164,9 @@ const filters = (input) => {
     groups.forEach((val, key) => {
         const toString = Array.from(val).map((inp, index) => {
             const originalName = `[${outputName(inp.index, inp.src)}]`;
-            let output = '';
-            if(!inp.mergedAudioTrackName && !inp.merged) {
-                output = `[${outputName(inp.index, inp.src)}]`;
-                outputs.push(output)
-            }
 
-            if(inp.mergedAudioTrackName && inp.merged) {
-                output = `[${inp.mergedAudioTrackName}]`;
-                outputs.push(output);
-            }
+            const output = extractOutput(inp);
+            if(output) outputs.push(output);
 
             // output converting
             return `[${inp.index}] ${inp.trim ? inp.trim +  ',' : ''} ${inp.delay} ${originalName};`;
@@ -252,7 +184,7 @@ const mergedAudios = () => {
     let mergedAudios = [];
     groups.forEach((val, key) => {
         const m = Array.from(val).map((inp) => {
-            if(inp.mergedAudio) return inp;
+            if(inp.mergedAudio && mergedLengthFilesByGroup(inp.group, inp.src) > 1) return inp;
 
             return undefined;
         }).filter((el) => el !== undefined);
@@ -263,7 +195,7 @@ const mergedAudios = () => {
     return mergedAudios;
 }
 
-const convertMergedAudiosToString = () => mergedAudios().map((a) => a.mergedAudio).join('\n').trim().toString();
+const convertMergedAudiosToString = () => mergedAudios().map((a) => a.mergedAudio).join(';\n').trim().toString();
 
 const mergeOutputs = outputs.join('').trim().concat(`amix=inputs=${input.length - mergedAudios().length}`);
 
