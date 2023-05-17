@@ -1,10 +1,10 @@
-const ffmpeg = require('./ffmpeg');
+// const ffmpeg = require('./ffmpeg');
 const exec = require('child_process').exec;
 const path = require("path");
 
 const input = [
     {
-        "id": "n3fXeI818rrrwY8k2C053",
+        "id": "9oyZiNH-CrGt1VR_stQ0E",
         "projectFileId": 1,
         "src": "./short.mp3",
         "group": 1,
@@ -20,17 +20,49 @@ const input = [
         "denyMoving": false
     },
     {
-        "id": "UIx5Yn9lRD1KTHfaSzhmD",
+        "id": "fvT_C_3TvKc2srhKHW7Eb",
+        "projectFileId": 2,
+        "src": "./dark-engine.mp3",
+        "group": 2,
+        "content": {},
+        "_type": "audio",
+        "duration": 2891,
+        "originalFileDuration": 12000,
+        "start": 2245,
+        "end": 5136,
+        "playFrom": 0,
+        "volume": 100,
+        "className": "cardInfo.audioInfo.type",
+        "denyMoving": false
+    },
+    {
+        "id": "5YZg61nsX6u-z2LOH-jKX",
+        "projectFileId": 2,
+        "src": "./dark-engine.mp3",
+        "group": 2,
+        "content": {},
+        "_type": "audio",
+        "duration": 3668,
+        "originalFileDuration": 12000,
+        "start": 6236,
+        "end": 9904,
+        "playFrom": 2891,
+        "volume": 100,
+        "className": "cardInfo.audioInfo.type",
+        "denyMoving": false
+    },
+    {
+        "id": "5QI-i3vyU3AaNcZJX_snm",
         "projectFileId": 2,
         "src": "./dark-engine.mp3",
         "group": 1,
         "content": {},
         "_type": "audio",
-        "duration": 12000,
+        "duration": 5441,
         "originalFileDuration": 12000,
-        "start": 3113,
-        "end": 15113,
-        "playFrom": 0,
+        "start": 11189,
+        "end": 16630,
+        "playFrom": 6559,
         "volume": 100,
         "className": "cardInfo.audioInfo.type",
         "denyMoving": false
@@ -144,7 +176,7 @@ const mergedLengthFilesByGroup = (group, src) => {
 
 const extractOutput = (inp) => {
     let output = '';
-    if(!inp.mergedAudioTrackName && (!inp.merged || mergedLengthFilesByGroup(inp.group, inp.src) <= 1)) {
+    if(!inp.mergedAudioTrackName && mergedLengthFilesByGroup(inp.group, inp.src) <= 1) {
         output = `[${outputName(inp.index, inp.src)}]`;
         return output;
     }
@@ -180,6 +212,21 @@ const filters = (input) => {
 
 filters(input);
 
+const amixInputs = () => {
+    // counter sum all files that are going to be merged into one separately
+    let counter = 0;
+    groups.forEach((val) => {
+        Array.from(val).forEach((inp) => {
+            if(inp.merged) counter++;
+        });
+    });
+
+    // the amix sum can be calculating when the input files we remove the merged files + 1
+    if(counter) return input.length - counter + 1
+    // if there is no merged files just return the input
+    return input.length
+}
+
 const mergedAudios = () => {
     let mergedAudios = [];
     groups.forEach((val, key) => {
@@ -197,7 +244,7 @@ const mergedAudios = () => {
 
 const convertMergedAudiosToString = () => mergedAudios().map((a) => a.mergedAudio).join(';\n').trim().toString();
 
-const mergeOutputs = outputs.join('').trim().concat(`amix=inputs=${input.length - mergedAudios().length}`);
+const mergeOutputs = outputs.join('').trim().concat(`amix=inputs=${amixInputs()}`);
 
 console.log('merged outputs ', mergeOutputs)
 
