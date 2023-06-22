@@ -4,7 +4,7 @@ const path = require("path");
 
 const input = [
     {
-        "id": "9oyZiNH-CrGt1VR_stQ0E",
+        "id": "e3cSHOJix9c3tIsvPUWq0",
         "projectFileId": 1,
         "src": "./short.mp3",
         "group": 1,
@@ -12,57 +12,57 @@ const input = [
         "_type": "audio",
         "duration": 2540,
         "originalFileDuration": 2540,
-        "start": 0,
-        "end": 2540,
+        "start": 210,
+        "end": 2750,
         "playFrom": 0,
         "volume": 100,
         "className": "cardInfo.audioInfo.type",
         "denyMoving": false
     },
     {
-        "id": "fvT_C_3TvKc2srhKHW7Eb",
+        "id": "Fhsc5nvQOmYLmLz0QAkAd",
         "projectFileId": 2,
         "src": "./dark-engine.mp3",
         "group": 2,
         "content": {},
         "_type": "audio",
-        "duration": 2891,
+        "duration": 4932,
         "originalFileDuration": 12000,
-        "start": 2245,
-        "end": 5136,
+        "start": 2026,
+        "end": 6958,
         "playFrom": 0,
         "volume": 100,
         "className": "cardInfo.audioInfo.type",
         "denyMoving": false
     },
     {
-        "id": "5YZg61nsX6u-z2LOH-jKX",
-        "projectFileId": 2,
-        "src": "./dark-engine.mp3",
+        "id": "OWI2ppCEY5tUfMmUuv_nu",
+        "projectFileId": 3,
+        "src": "./sample-6s.mp3",
         "group": 2,
         "content": {},
         "_type": "audio",
-        "duration": 3668,
-        "originalFileDuration": 12000,
-        "start": 6236,
-        "end": 9904,
-        "playFrom": 2891,
+        "duration": 6000,
+        "originalFileDuration": 6000,
+        "start": 8288,
+        "end": 14288,
+        "playFrom": 0,
         "volume": 100,
         "className": "cardInfo.audioInfo.type",
         "denyMoving": false
     },
     {
-        "id": "5QI-i3vyU3AaNcZJX_snm",
+        "id": "W8Av4eDxQqRdb1yrW2u2G",
         "projectFileId": 2,
         "src": "./dark-engine.mp3",
         "group": 1,
         "content": {},
         "_type": "audio",
-        "duration": 5441,
+        "duration": 7068,
         "originalFileDuration": 12000,
-        "start": 11189,
-        "end": 16630,
-        "playFrom": 6559,
+        "start": 17370,
+        "end": 24438,
+        "playFrom": 4932,
         "volume": 100,
         "className": "cardInfo.audioInfo.type",
         "denyMoving": false
@@ -272,14 +272,15 @@ exec(args('merged1'), (err, stdout, stderr) => {
 console.log('End processing!')
 
 const args2 = (outputFilename) => `
-    ffmpeg -i ./short.mp3 -i ./dark-engine.mp3 -i ./dark-engine.mp3 \
+    ffmpeg -i ./short.mp3 -i ./short.mp3 -i ./dark-engine.mp3 -i ./dark-engine.mp3 \
        -filter_complex \
              "\
-    [0:a]adelay=7015|7015[output-short-0.mp3];\
-    [1:a]atrim=start='0':end='3.969', adelay=381|381 [audio-1];\
-    [2:a]atrim=start='3.588':end='14.541', adelay=2160|2160 [audio-2];\
-    [audio-1][audio-2] concat=n=2:v=0:a=1 [merged-audios-track-2];
-    [output-short-0.mp3][merged-audios-track-2]amix=inputs=2 [merged-audios]" \
+    [0:a]adelay=7015|7015 [audio-11];\
+    [1:a]adelay=1000|1000, atrim=start='0':end='2.969' [audio-12];\
+    [2:a]atrim=start='0':end='3.969', adelay=381|381, volume=1.5 [audio-1];\
+    [3:a]atrim=start='3.588':end='14.541', adelay=2160|2160 [audio-2];\
+    [audio-11][audio-1][audio-2] concat=n=3:v=0:a=1 [merged-audios-track-2]; \
+    [audio-12][merged-audios-track-2]amix=inputs=2 [merged-audios]" \
     -map [merged-audios] \
      ${outputFilename}.mp3
 `;
