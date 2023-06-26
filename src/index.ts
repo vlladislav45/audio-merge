@@ -97,7 +97,7 @@ input.forEach((clip) => {
 
    if(Helpers.isVideoFile(extension)) {
        videoClips.push(clip);
-   } else if(Helpers.isAudioFile(extension)) {
+   } else if(Helpers.isAudioFile(extension) && clip?.volume > 0) {
        audioClips.push(clip);
    } else {
        console.log('Unsupported type');
