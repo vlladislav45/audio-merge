@@ -91,7 +91,7 @@ const audioClips: Clip[] = [];
 const videoClips: Clip[] = [];
 
 input.forEach((clip) => {
-    const pathLength = clip.src.split(/\/+/).length;
+   const pathLength = clip.src.split(/\/+/).length;
 
    const extension = Helpers.getFileExtension(clip.src.split(/\/+/)[pathLength - 1]);
 
@@ -110,29 +110,27 @@ if(audioClips?.length && videoClips?.length) {
     // Instantiate VideoService
     const videoService = new VideoService(videoClips);
 
-    audioService.applyTrims(audioService.groups);
-    audioService.setDelays(audioService.groups);
+    audioService.applyTrims();
+    audioService.setDelays();
+    const audioFilters = audioService.compileFilters();
 
-    const convertMergedAudiosToString = () =>
-        audioService.mergedAudios()
-            .map((a) => a.mergedAudio)
-            .join(';\n')
-            .trim()
-            .toString();
-    const mergeOutputs = audioService.outputs.join('').trim().concat(`amix=inputs=${audioService.amixInputs()+1}`);
+    const mergeOutputs = audioService.outputs.join('').trim().concat(`amix=inputs=${audioService.amixInputs()}`);
 
     // Combine video, background audio, and speech
     const combinedCommand = `
       ffmpeg -y -i ${videoService.inputs(videoService._input)} -i ${audioService.inputs(audioService._input)} \
         -filter_complex  \
         "\
-        ${videoService.compileFilters()}
-        ${audioService.compileFilters()}
-        ${audioService.mergedAudios().length ? convertMergedAudiosToString() + ';\n' : ''}
+        ${videoService.compileFilters()}; \
+        ${audioFilters}
+        ${audioService.mergedAudios().length ? audioService.convertMergedAudiosToString() + ';\n' : ''}
         ${mergeOutputs} [merged-audios]" \
-        -map ${videoService.videoOutputMap} -map [merged-audios] \
+        -map ${videoService.videoOutputMap} \
+        -map [merged-audios] \
         out/output.mp4
     `;
+
+    console.log('combinedCommand', combinedCommand)
 
     exec(combinedCommand, (err, stdout, stderr) => {
         if (err) {
@@ -147,7 +145,6 @@ if(audioClips?.length && videoClips?.length) {
 
     // Generate audio merging command
     const audioCommand = audioService.prepareCliCommand('out/background_audio');
-    console.log('audioCommand', audioCommand);
 
     // Execute audio merging command
     exec(audioCommand, (err, stdout, stderr) => {
@@ -162,7 +159,6 @@ if(audioClips?.length && videoClips?.length) {
     const videoService = new VideoService(videoClips);
     // Generate video conversion command
     const videoCommand = videoService.prepareCliCommand('out/intermediate_video');
-    console.log('videoCommand', videoCommand);
 
     // Execute video conversion command
     exec(videoCommand, (err, stdout, stderr) => {

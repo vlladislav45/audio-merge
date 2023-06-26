@@ -39,8 +39,7 @@ export class VideoService extends BaseMediaService {
           ffmpeg -y -i ${this.inputs(this._input)} \
             -filter_complex \
             "\
-            ${filters}
-         
+            ${filters}" \
             -map ${this.videoOutputMap} \
             ${outputFilename}.mp4
        `;
@@ -59,15 +58,15 @@ export class VideoService extends BaseMediaService {
                 const outputName = `[${this.generateOutputName(mt.index, mt.src)}]`;
                 this.videoOutputMap = outputName;
                 // output converting
-                const converted = `[${mt.index}:v] scale=-1:720 ${outputName};`;
+                const converted = `[${mt.index}:v] scale=-1:720 ${outputName}`;
 
                 return converted;
             });
 
             const generatedFiltersToString = generateFilters.join('\n').trim().toString();
-            convertedString = convertedString + generatedFiltersToString;
+            convertedString += generatedFiltersToString;
         });
 
-        return convertedString + '\n';
+        return convertedString;
     }
 }

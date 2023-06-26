@@ -36,17 +36,11 @@ export class AudioService extends BaseMediaService {
      * The main method that preparing and compiling all side effects in arguments
      */
     prepareCliCommand(outputName: string): string {
-        this.applyTrims(this.groups);
-        this.setDelays(this.groups);
+        this.applyTrims();
+        this.setDelays();
 
         const filters: string = this.compileFilters();
-
-        const convertMergedAudiosToString = () =>
-            this.mergedAudios()
-                .map((a) => a.mergedAudio)
-                .join(';\n')
-                .trim()
-                .toString();
+        const convertMergedAudiosToString = this.convertMergedAudiosToString();
         const mergeOutputs = this.outputs.join('').trim().concat(`amix=inputs=${this.amixInputs()}`);
 
         // Build arguments
@@ -64,10 +58,20 @@ export class AudioService extends BaseMediaService {
         return args(outputName);
     }
 
+    convertMergedAudiosToString() {
+        return () =>
+            this.mergedAudios()
+                .map((a) => a.mergedAudio)
+                .join(';\n')
+                .trim()
+                .toString();
+    }
+
     /**
      * Trimming all needed files passed by
      */
-    applyTrims(groups: Map<string, EnrichedClip[]>): void {
+    applyTrims(): void {
+        const groups = this.groups;
         groups.forEach((val, groupId) => {
             const needsTrimArr = Array.from(val)
                 .map((mt) => {
@@ -123,7 +127,8 @@ export class AudioService extends BaseMediaService {
      * Hint: If the specific group audio files ain't merged
      * the delay should be from the starting point NOT from the previous stop
      */
-    setDelays(groups: Map<string, EnrichedClip[]>): void {
+    setDelays(): void {
+        const groups = this.groups;
         groups.forEach((val, key) => {
             // Sort clips by start time
             const sorted = _.orderBy(Array.from(val), 'start');
