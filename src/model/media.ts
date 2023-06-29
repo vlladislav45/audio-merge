@@ -2,7 +2,7 @@ export interface Clip {
     /* this key allows to make a copy of the same file with different id */
     id: string;
     /* actual ID saved in BE for this file. */
-    projectFileId: number; //
+    projectFileId: string; //
     src: string;
     group: number;
     //content can be string or html code, vis-timeline does not allow me to set type HTMLElement
@@ -23,7 +23,7 @@ export interface EnrichedClip {
     /* this key allows to make a copy of the same file with different id */
     id: string;
     /* actual ID saved in BE for this file. */
-    projectFileId: number; //
+    projectFileId: string; //
     src: string;
     group: number;
     //content can be string or html code, vis-timeline does not allow me to set type HTMLElement

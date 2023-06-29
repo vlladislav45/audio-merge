@@ -3,14 +3,16 @@ import {Clip, EnrichedClip} from "../model/media";
 import _ from "lodash";
 
 export class VideoService extends BaseMediaService {
-    readonly _input: Clip[] = [];
+    readonly _videoInput: Clip[] = [];
+    readonly _audioInput: Clip[] = [];
     private groups: Map<string, EnrichedClip[]> = new Map();
 
     videoOutputMap: string = '';
 
-    constructor(input: Clip[]) {
+    constructor(videos: Clip[], audios?: Clip[]) {
         super();
-        this._input = _.orderBy(input, 'start'); // Sort clips by start time
+        this._videoInput = _.orderBy(videos, 'start'); // Sort clips by start time
+        this._audioInput = _.orderBy(audios, 'start'); // Sort clips by start time
 
         /**
          * Description: Groups predefine
@@ -18,7 +20,7 @@ export class VideoService extends BaseMediaService {
          * key -> track (group)
          * value -> an array of passed clips
          */
-        this._input.forEach((clip, index) => {
+        this._videoInput.forEach((clip, index) => {
             const { group } = clip;
 
             const element = { ...clip, index };
@@ -31,20 +33,34 @@ export class VideoService extends BaseMediaService {
     /**
      * The main method that preparing and compiling all side effects in arguments
      */
-    prepareCliCommand(outputName: string): string  {
+    prepareCliCommand(outputName: string, copyAudio?: boolean): string  {
         const filters: string = this.compileFilters();
 
-        // Build arguments
-        const args = (outputFilename) => `
-          ffmpeg -y -i ${this.inputs(this._input)} \
+          // Build arguments
+          const  args = (outputFilename) => `
+          ffmpeg -y -i ${this.inputs(this._videoInput)} -i ${this.inputs(this._audioInput)} \
             -filter_complex \
             "\
-            ${filters}" \
-            -map ${this.videoOutputMap} \
-            ${outputFilename}.mp4
+            ${filters} \
+            ${copyAudio ? this.attachAudio(outputFilename) : `" \ -map ${this.videoOutputMap} ${outputFilename}.mp4 `}
+          
        `;
 
         return args(outputName);
+    }
+
+    /**
+     * Attach specific audios to the video while preparing the command
+    */
+    attachAudio(outputFilename: string): string {
+        // If you wanna use compression add the following line after "[bg_audio][0:a]amix=inputs=2[a]"
+        // -c:v libx264 -crf 23 -preset veryfast -c:a aac -b:a 128k
+
+        const command = `;
+        [1:a]adelay=0|0[bg_audio]; \
+        [bg_audio][0:a]amix=inputs=2[a]" \
+        -map "${this.videoOutputMap}" -map "[a]"  -shortest ${outputFilename}.mp4 `;
+        return command;
     }
 
     /**

@@ -33,14 +33,13 @@ export class AudioService extends BaseMediaService {
     }
 
     /**
-     * The main method that preparing and compiling all side effects in arguments
+     * The main method that prepares and compiles all of the side effects in the arguments
      */
     prepareCliCommand(outputName: string): string {
         this.applyTrims();
         this.setDelays();
 
         const filters: string = this.compileFilters();
-        const convertMergedAudiosToString = this.convertMergedAudiosToString();
         const mergeOutputs = this.outputs.join('').trim().concat(`amix=inputs=${this.amixInputs()}`);
 
         // Build arguments
@@ -49,7 +48,7 @@ export class AudioService extends BaseMediaService {
         -filter_complex \
         "\
         ${filters}
-        ${this.mergedAudios().length ? convertMergedAudiosToString() + ';\n' : ''}
+        ${this.mergedAudios().length ? this.convertMergedAudiosToString() + ';\n' : ''}
         ${mergeOutputs} [merged-audios]" \
         -map [merged-audios] \
          ${outputFilename}.mp3
@@ -58,19 +57,18 @@ export class AudioService extends BaseMediaService {
         return args(outputName);
     }
 
-    convertMergedAudiosToString() {
-        return () =>
-            this.mergedAudios()
-                .map((a) => a.mergedAudio)
-                .join(';\n')
-                .trim()
-                .toString();
+    private convertMergedAudiosToString() {
+        return this.mergedAudios()
+            .map((a) => a.mergedAudio)
+            .join(';\n')
+            .trim()
+            .toString();
     }
 
     /**
      * Trimming all needed files passed by
      */
-    applyTrims(): void {
+    private applyTrims(): void {
         const groups = this.groups;
         groups.forEach((val, groupId) => {
             const needsTrimArr = Array.from(val)
@@ -127,7 +125,7 @@ export class AudioService extends BaseMediaService {
      * Hint: If the specific group audio files ain't merged
      * the delay should be from the starting point NOT from the previous stop
      */
-    setDelays(): void {
+    private setDelays(): void {
         const groups = this.groups;
         groups.forEach((val, key) => {
             // Sort clips by start time
@@ -153,7 +151,7 @@ export class AudioService extends BaseMediaService {
      * Example: The result of 1 file which has been trimmed into two parts. Those two pieces are
      * represented as result of this method
      */
-    mergedFilesLengthByGroup(group: number, src: string): number {
+    private mergedFilesLengthByGroup(group: number, src: string): number {
         let counter = 0;
         this.groups.get(String(group)).filter((g) => {
             if (g.src === src && g.merged) counter++;
@@ -189,7 +187,7 @@ export class AudioService extends BaseMediaService {
      * with an interval of 10. It indicates a progression in which the value starts at 0
      * and gradually increases by 10 units until it reaches a maximum value of 200.
      */
-    compileVolumes(volume?: number): string {
+    private compileVolumes(volume?: number): string {
         if (volume) {
             if (volume > 200) {
                 volume = 200;
@@ -204,14 +202,14 @@ export class AudioService extends BaseMediaService {
             volume /= 100;
             return `,volume=${volume}`;
         }
-        return '';
+        return ',volume=0';
     }
 
     /**
      * filter -complex
      * Preparing and converting the input arguments to suitable output directly in string format
      */
-    compileFilters(): string {
+    private compileFilters(): string {
         let convertedString = '';
         this.groups.forEach((val, key) => {
             const generateFilters = Array.from(val).map((mt, index) => {
@@ -235,7 +233,7 @@ export class AudioService extends BaseMediaService {
         return convertedString + '\n';
     }
 
-    amixInputs(): number {
+    private amixInputs(): number {
         // counter sum all files that are going to be merged into one separately
         let counter = 0;
         this.groups.forEach((val) => {
@@ -245,7 +243,7 @@ export class AudioService extends BaseMediaService {
         });
 
         // There is a scenario when all files are merged then we need to return the calculated sum of all merged files
-        if(counter >= this._input.length) return this.countedMergedFiles;
+        if (counter >= this._input.length) return this.countedMergedFiles;
 
         // the amix sum can be calculating when the input files we remove the merged files + 1
         if (counter) return this._input.length - counter + 1;
@@ -256,7 +254,7 @@ export class AudioService extends BaseMediaService {
     /**
      * Method that return only a merged files
      */
-    mergedAudios(): EnrichedClip[] {
+    private mergedAudios(): EnrichedClip[] {
         let mergedAudios: EnrichedClip[] = [];
         this.groups.forEach((val, group: string) => {
             const m = Array.from(val)
